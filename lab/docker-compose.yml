@@ -1,0 +1,66 @@
+name: ats-regex-remap-userinfo
+
+services:
+  good-origin:
+    image: python:3.13-slim
+    restart: "no"
+    environment:
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./poc.py:/lab/poc.py:ro
+    command: ["python3", "/lab/poc.py", "--role", "good"]
+    expose:
+      - "8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)",
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
+
+  evil-origin:
+    image: python:3.13-slim
+    restart: "no"
+    environment:
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./poc.py:/lab/poc.py:ro
+    command: ["python3", "/lab/poc.py", "--role", "evil"]
+    ports:
+      - "127.0.0.1:18731:8080"
+    expose:
+      - "8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)",
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 2s
+
+  ats:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ats-regex-remap-userinfo:local
+    restart: "no"
+    depends_on:
+      good-origin:
+        condition: service_healthy
+      evil-origin:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:18730:8080"
+    expose:
+      - "8080"

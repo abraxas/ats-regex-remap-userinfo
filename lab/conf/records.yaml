@@ -1,0 +1,32 @@
+records:
+  accept_threads: 1
+  cache:
+    ram_cache:
+      size: 1048576
+  diags:
+    debug:
+      enabled: 1
+      tags: regex_remap|http|dns|url
+    output:
+      debug: E
+      diag: E
+      error: E
+      warning: E
+  exec_thread:
+    autoconfig:
+      enabled: 0
+    limit: 1
+  http:
+    cache:
+      http: 0
+    connect_attempts_max_retries: 1
+    connect_attempts_timeout: 10
+    server_ports: 8080
+    transaction_no_activity_timeout_in: 30
+    transaction_no_activity_timeout_out: 15
+  reverse_proxy:
+    enabled: 1
+  task_threads: 1
+  url_remap:
+    pristine_host_hdr: 0
+    remap_required: 1

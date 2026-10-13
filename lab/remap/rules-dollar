@@ -1,0 +1,2 @@
+# Capture as the entire authority. Tried last if slash/noslash stay on good-origin.
+^/(.*) http://$1

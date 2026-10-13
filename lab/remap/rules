@@ -1,0 +1,2 @@
+# Documented leftover shape: $1 immediately after the host slash.
+^/(.*) http://good-origin:8080/$1

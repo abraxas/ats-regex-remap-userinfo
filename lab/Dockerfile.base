@@ -1,0 +1,86 @@
+# Shared Apache Traffic Server 10.2.0 lab image (ats-10.2.0-lab:local).
+# Pin: tag 10.2.0 commit b1df7334b39a878971c376da849e8da4984918b6
+# Build context is the trafficserver source tree. Do not bake host paths.
+
+FROM ubuntu:24.04 AS build
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        brotli \
+        ca-certificates \
+        cmake \
+        g++ \
+        libbrotli-dev \
+        libcap-dev \
+        libfmt-dev \
+        libhwloc-dev \
+        libluajit-5.1-dev \
+        liblzma-dev \
+        libpcre2-dev \
+        libssl-dev \
+        libunwind-dev \
+        libxml2-dev \
+        ninja-build \
+        pkg-config \
+        zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY . /src
+
+RUN cmake -S /src -B /build -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/opt/ats \
+        -DBUILD_EXPERIMENTAL_PLUGINS=ON \
+        -DENABLE_CRIPTS=ON \
+        -DENABLE_LUAJIT=ON \
+        -DENABLE_QUICHE=OFF \
+        -DBUILD_TESTING=OFF \
+        -DBUILD_REGRESSION_TESTING=OFF \
+        -DENABLE_AUTEST=OFF \
+        -DENABLE_DOCS=OFF \
+        -DENABLE_EXAMPLE=OFF \
+        -DENABLE_BENCHMARKS=OFF \
+    && cmake --build /build --parallel 4 \
+    && cmake --install /build
+
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PATH="/opt/ats/bin:${PATH}"
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        libbrotli1 \
+        libcap2t64 \
+        libfmt9 \
+        libhwloc15 \
+        libluajit-5.1-2 \
+        liblzma5 \
+        libpcre2-8-0 \
+        libssl3t64 \
+        libunwind8 \
+        libxml2 \
+        zlib1g \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /opt/ats /opt/ats
+
+RUN mkdir -p \
+        /opt/ats/var/trafficserver \
+        /opt/ats/var/log/trafficserver \
+        /opt/ats/var/run/trafficserver \
+    && chown -R nobody:nogroup \
+        /opt/ats/var/trafficserver \
+        /opt/ats/var/log/trafficserver \
+        /opt/ats/var/run/trafficserver
+
+LABEL ats.version="10.2.0" \
+      ats.pin="b1df7334b39a878971c376da849e8da4984918b6"
+
+EXPOSE 8080
+USER nobody
+CMD ["traffic_server"]

