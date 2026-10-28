@@ -13,6 +13,10 @@
   &nbsp;·&nbsp;
   <a href="https://github.com/abraxas/ats-regex-remap-userinfo">ats-regex-remap-userinfo</a>
 </p>
+<p align="center">
+  Write-up: <a href="https://abraxaslabs.tech/research/ats-regex-remap-userinfo"><strong>https://abraxaslabs.tech/research/ats-regex-remap-userinfo</strong></a>
+</p>
+
 
 # ats-regex-remap-userinfo
 
